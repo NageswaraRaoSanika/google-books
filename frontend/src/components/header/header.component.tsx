@@ -2,9 +2,8 @@ import React from "react";
 
 type HeaderProps = {
   title?: string;
-}; /* use `interface` if exporting so that consumers can extend */
+};
 
-// Easiest way to declare a Function Component; return type is inferred.
 const Header = ({ title = "De Books" }: HeaderProps) => (
   <nav
     className="navbar is-info"
