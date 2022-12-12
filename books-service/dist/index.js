@@ -28,9 +28,42 @@ const options = {
 };
 // Then pass these options to cors:
 app.use((0, cors_1.default)(options));
+const mostCommonString = (array) => {
+    if (array.length == 0)
+        return null;
+    var modeMap = {};
+    var maxEl = array[0], maxCount = 1;
+    for (var i = 0; i < array.length; i++) {
+        var el = array[i];
+        if (modeMap[el] == null)
+            modeMap[el] = 1;
+        else
+            modeMap[el]++;
+        if (modeMap[el] > maxCount) {
+            maxEl = el;
+            maxCount = modeMap[el];
+        }
+    }
+    return maxEl;
+};
 const formatResponse = (data) => {
+    var _a, _b, _c;
+    const books = (data === null || data === void 0 ? void 0 : data.items) || [];
+    books.sort(function (a, b) {
+        return (new Date(b.volumeInfo.publishedDate).getTime() -
+            new Date(a.volumeInfo.publishedDate).getTime());
+    });
+    const recentBook = data === null || data === void 0 ? void 0 : data.items[0];
+    const mostCommonAuthor = mostCommonString((_a = books === null || books === void 0 ? void 0 : books.map((item) => { var _a; return (_a = item === null || item === void 0 ? void 0 : item.volumeInfo) === null || _a === void 0 ? void 0 : _a.authors; })) === null || _a === void 0 ? void 0 : _a.reduce((acc, curr) => curr ? [...acc, ...curr] : [...acc], []));
     const formattedData = {
-        total: data === null || data === void 0 ? void 0 : data.totalItems,
+        stats: {
+            totalRecords: data === null || data === void 0 ? void 0 : data.totalItems,
+            mostCommonAuthor,
+            recentlyPublished: {
+                name: (_b = recentBook.volumeInfo) === null || _b === void 0 ? void 0 : _b.title,
+                date: (_c = recentBook.volumeInfo) === null || _c === void 0 ? void 0 : _c.publishedDate,
+            },
+        },
         books: data === null || data === void 0 ? void 0 : data.items.map((item) => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
             return ({
@@ -47,8 +80,8 @@ const formatResponse = (data) => {
     return formattedData;
 };
 app.get("/books", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(req.params);
-    const url = `${booksAPI}?q=hello&startIndex=1&maxResults=40`;
+    const { query, page, recordsPerPage } = req.query;
+    const url = `${booksAPI}?q=${query}&startIndex=${page}&maxResults=${recordsPerPage}`;
     const { data } = yield axios_1.default.get(url);
     res.send(formatResponse(data));
 }));

@@ -20,9 +20,52 @@ const options: CorsOptions = {
 // Then pass these options to cors:
 app.use(cors(options));
 
+const mostCommonString = (array: Array<string>) => {
+  if (array.length == 0) return null;
+  var modeMap: Record<string, number> = {};
+  var maxEl = array[0],
+    maxCount = 1;
+  for (var i = 0; i < array.length; i++) {
+    var el = array[i];
+    if (modeMap[el] == null) modeMap[el] = 1;
+    else modeMap[el]++;
+    if (modeMap[el] > maxCount) {
+      maxEl = el;
+      maxCount = modeMap[el];
+    }
+  }
+  return maxEl;
+};
+
 const formatResponse = (data: any) => {
+  const books = data?.items || [];
+  books.sort(function (a: any, b: any) {
+    return (
+      new Date(b.volumeInfo.publishedDate).getTime() -
+      new Date(a.volumeInfo.publishedDate).getTime()
+    );
+  });
+
+  const recentBook = data?.items[0];
+  const mostCommonAuthor = mostCommonString(
+    books
+      ?.map((item: any) => item?.volumeInfo?.authors)
+      ?.reduce(
+        (acc: Array<string>, curr: Array<string>) =>
+          curr ? [...acc, ...curr] : [...acc],
+        []
+      )
+  );
+
   const formattedData = {
-    total: data?.totalItems,
+    stats: {
+      totalRecords: data?.totalItems,
+      mostCommonAuthor,
+      recentlyPublished: {
+        name: recentBook.volumeInfo?.title,
+        date: recentBook.volumeInfo?.publishedDate,
+      },
+    },
     books: data?.items.map((item: any) => ({
       title: item?.volumeInfo?.title,
       subtitle: item?.volumeInfo?.subtitle,
@@ -40,9 +83,9 @@ const formatResponse = (data: any) => {
 };
 
 app.get("/books", async (req: Request, res: Response) => {
-  console.log(req.params);
+  const { query, page, recordsPerPage } = req.query;
 
-  const url = `${booksAPI}?q=hello&startIndex=1&maxResults=40`;
+  const url = `${booksAPI}?q=${query}&startIndex=${page}&maxResults=${recordsPerPage}`;
   const { data } = await axios.get(url);
   res.send(formatResponse(data));
 });
