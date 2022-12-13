@@ -23,6 +23,8 @@ export type Stats = {
 export interface AppContextInterface {
   books?: Books;
   stats?: Stats;
+  clientReqTime?: number;
+  serverReqTime?: number;
   getBooks?: (
     searchString?: string,
     page?: number,
