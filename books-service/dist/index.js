@@ -81,9 +81,12 @@ const formatResponse = (data) => {
 };
 app.get("/books", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { query, page, recordsPerPage } = req.query;
+    const start = Date.now();
     const url = `${booksAPI}?q=${query}&startIndex=${page}&maxResults=${recordsPerPage}`;
     const { data } = yield axios_1.default.get(url);
-    res.send(formatResponse(data));
+    const finish = Date.now();
+    const resData = formatResponse(data);
+    res.send(Object.assign(Object.assign({}, resData), { reqResponseTime: (finish - start) / 1000 }));
 }));
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);

@@ -84,10 +84,12 @@ const formatResponse = (data: any) => {
 
 app.get("/books", async (req: Request, res: Response) => {
   const { query, page, recordsPerPage } = req.query;
-
+  const start = Date.now();
   const url = `${booksAPI}?q=${query}&startIndex=${page}&maxResults=${recordsPerPage}`;
   const { data } = await axios.get(url);
-  res.send(formatResponse(data));
+  const finish = Date.now();
+  const resData = formatResponse(data);
+  res.send({ ...resData, reqResponseTime: (finish - start) / 1000 });
 });
 
 app.listen(port, () => {
